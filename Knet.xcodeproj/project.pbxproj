@@ -7,7 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D404F42B25DFB1090061A641 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F42A25DFB1090061A641 /* main.swift */; };
+		D404F43C25DFB39E0061A641 /* KFullyConnected.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F43B25DFB39E0061A641 /* KFullyConnected.swift */; };
+		D404F44325DFC26D0061A641 /* KnetJson.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44225DFC26D0061A641 /* KnetJson.swift */; };
+		D404F44825DFC3B50061A641 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44725DFC3B50061A641 /* main.swift */; };
+		D404F44B25DFC45A0061A641 /* Knet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44A25DFC45A0061A641 /* Knet.swift */; };
+		D404F44E25DFC7EC0061A641 /* KnetCounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44D25DFC7EC0061A641 /* KnetCounts.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +28,15 @@
 
 /* Begin PBXFileReference section */
 		D404F42725DFB1090061A641 /* Knet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Knet; sourceTree = BUILT_PRODUCTS_DIR; };
-		D404F42A25DFB1090061A641 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		D404F42A25DFB1090061A641 /* mange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mange.swift; sourceTree = "<group>"; };
+		D404F43225DFB1240061A641 /* swiftlint.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = swiftlint.sh; sourceTree = "<group>"; };
+		D404F43325DFB1240061A641 /* .swiftlint.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
+		D404F43425DFB1240061A641 /* .overcommit.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .overcommit.yml; sourceTree = "<group>"; };
+		D404F43B25DFB39E0061A641 /* KFullyConnected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KFullyConnected.swift; sourceTree = "<group>"; };
+		D404F44225DFC26D0061A641 /* KnetJson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnetJson.swift; sourceTree = "<group>"; };
+		D404F44725DFC3B50061A641 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		D404F44A25DFC45A0061A641 /* Knet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knet.swift; sourceTree = "<group>"; };
+		D404F44D25DFC7EC0061A641 /* KnetCounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnetCounts.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +53,9 @@
 		D404F41E25DFB1090061A641 = {
 			isa = PBXGroup;
 			children = (
+				D404F43425DFB1240061A641 /* .overcommit.yml */,
+				D404F43325DFB1240061A641 /* .swiftlint.yml */,
+				D404F43225DFB1240061A641 /* swiftlint.sh */,
 				D404F42925DFB1090061A641 /* Knet */,
 				D404F42825DFB1090061A641 /* Products */,
 			);
@@ -57,7 +72,12 @@
 		D404F42925DFB1090061A641 /* Knet */ = {
 			isa = PBXGroup;
 			children = (
-				D404F42A25DFB1090061A641 /* main.swift */,
+				D404F42A25DFB1090061A641 /* mange.swift */,
+				D404F43B25DFB39E0061A641 /* KFullyConnected.swift */,
+				D404F44225DFC26D0061A641 /* KnetJson.swift */,
+				D404F44725DFC3B50061A641 /* main.swift */,
+				D404F44A25DFC45A0061A641 /* Knet.swift */,
+				D404F44D25DFC7EC0061A641 /* KnetCounts.swift */,
 			);
 			path = Knet;
 			sourceTree = "<group>";
@@ -69,6 +89,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D404F42E25DFB1090061A641 /* Build configuration list for PBXNativeTarget "Knet" */;
 			buildPhases = (
+				D404F43525DFB14A0061A641 /* ShellScript */,
 				D404F42325DFB1090061A641 /* Sources */,
 				D404F42425DFB1090061A641 /* Frameworks */,
 				D404F42525DFB1090061A641 /* CopyFiles */,
@@ -114,12 +135,36 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D404F43525DFB14A0061A641 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n/Users/rob/Projects/Library/Knet/swiftlint.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		D404F42325DFB1090061A641 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D404F42B25DFB1090061A641 /* main.swift in Sources */,
+				D404F44325DFC26D0061A641 /* KnetJson.swift in Sources */,
+				D404F43C25DFB39E0061A641 /* KFullyConnected.swift in Sources */,
+				D404F44E25DFC7EC0061A641 /* KnetCounts.swift in Sources */,
+				D404F44825DFC3B50061A641 /* main.swift in Sources */,
+				D404F44B25DFC45A0061A641 /* Knet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
