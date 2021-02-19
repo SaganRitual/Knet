@@ -25,6 +25,11 @@ class KFullyConnected: HasOrderProtocol {
         }
     }
 
+    static var filterParameters = BNNSFilterParameters(
+        flags: BNNSFlags.useClientPointer.rawValue, n_threads: 0,
+        alloc_memory: nil, free_memory: nil
+    )
+
     let order: Int
 
     let filter: BNNSFilter
@@ -45,7 +50,7 @@ class KFullyConnected: HasOrderProtocol {
         )
 
         guard let f = BNNSFilterCreateLayerFullyConnected(
-            &layerParameters, nil
+            &layerParameters, &KFullyConnected.filterParameters
         ) else { fatalError("What is it this time!") }
 
         self.order = order
@@ -55,7 +60,11 @@ class KFullyConnected: HasOrderProtocol {
         self.pOutputs = UnsafeMutableRawPointer(mutating: pOutputs.baseAddress!)
     }
 
-    func activate() { BNNSFilterApply(filter, pInputs, pOutputs) }
+    func activate() {
+        print("activate pre  \(pEverything!.map { String(format: "%.2f", $0) })")
+        BNNSFilterApply(filter, pInputs, pOutputs)
+        print("activate post \(pEverything!.map { String(format: "%.2f", $0) })")
+    }
 }
 
 private extension KFullyConnected {
@@ -72,7 +81,7 @@ private extension KFullyConnected {
         let i_desc = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutVector,
-            size: (cInputs, 0, 0, 0, 0, 0, 0, 0),
+            size: (cInputs, 1, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: nil,
             data_type: .float,
@@ -85,7 +94,7 @@ private extension KFullyConnected {
         let o_desc = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutVector,
-            size: (cOutputs, 0, 0, 0, 0, 0, 0, 0),
+            size: (cOutputs, 1, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: nil,
             data_type: .float,
@@ -98,7 +107,7 @@ private extension KFullyConnected {
         let w_desc = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutRowMajorMatrix,
-            size: (cInputs, cOutputs, 0, 0, 0, 0, 0, 0),
+            size: (cInputs, cOutputs, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: rpWeights,
             data_type: .float,
@@ -111,7 +120,7 @@ private extension KFullyConnected {
         let bias = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutVector,
-            size: (cOutputs, 0, 0, 0, 0, 0, 0, 0),
+            size: (cOutputs, 1, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: rpBiases,
             data_type: .float,
