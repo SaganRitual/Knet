@@ -60,11 +60,7 @@ class KFullyConnected: HasOrderProtocol {
         self.pOutputs = UnsafeMutableRawPointer(mutating: pOutputs.baseAddress!)
     }
 
-    func activate() {
-        print("activate pre  \(pEverything!.map { String(format: "%.2f", $0) })")
-        BNNSFilterApply(filter, pInputs, pOutputs)
-        print("activate post \(pEverything!.map { String(format: "%.2f", $0) })")
-    }
+    func activate() { BNNSFilterApply(filter, pInputs, pOutputs) }
 }
 
 private extension KFullyConnected {

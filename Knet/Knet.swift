@@ -28,6 +28,8 @@ class Knet {
     var cWeights = 0
     var cStatics: Int { cBiases + cWeights }
 
+    var layerSpecs: [KFCSpec]!
+
     var pEverything: UnsafeMutableBufferPointer<Float>!
     var cEverything: Int { cIOData + cBiases + cWeights }
 
@@ -43,16 +45,7 @@ class Knet {
     var weightsBuffer: UnsafeMutableBufferPointer<Float>!
 
     init(json netStructure: String) {
-        let decoder = JSONDecoder()
-
-        guard let layerSpecs = try? decoder.decode(
-            [KFCSpec].self, from: netStructure.data(using: .utf8)!
-        )
-        .sorted(by: Knet.orderSort) else {
-            fatalError("Couldn't decode your crappy json, loser")
-        }
-
-        setupCounts(layerSpecs)
+        setupCounts(json: netStructure)
         resetBufferIndexes()
         setupBuffers(layerSpecs)
         launchNet()
@@ -115,38 +108,17 @@ private extension Knet {
         sWeights += pWeights.count
     }
 
-    func setupCounts(_ layerSpecs: [KFCSpec]) {
-        let sensorSpecs = layerSpecs.filter { $0.inputConnections == nil }
+    func setupCounts(json netStructure: String) {
+        let counts = KnetCounts.setupCounts(json: netStructure)
 
-        for sensorSpec in sensorSpecs {
-            cExternalInputs += sensorSpec.cInputs
-            cInternalIOputs += sensorSpec.cOutputs
-            cBiases += sensorSpec.cOutputs
-            cWeights += sensorSpec.cOutputs * sensorSpec.cInputs
-        }
+        self.cExternalInputs = counts.cExternalInputs
+        self.cExternalOutputs = counts.cExternalOutputs
+        self.cInternalIOputs = counts.cInternalIOputs
 
-        let hiddenSpecs = layerSpecs.filter {
-            $0.inputConnections != nil && $0.outputConnection != nil
-        }
+        self.cBiases = counts.cBiases
+        self.cWeights = counts.cWeights
 
-        for layerSpec in hiddenSpecs {
-            cInternalIOputs += layerSpec.cOutputs
-            cBiases += layerSpec.cOutputs
-            cWeights += layerSpec.cOutputs * layerSpec.cInputs
-        }
-
-        let outputSpec = layerSpecs.last!
-
-        precondition(
-            outputSpec.inputConnections != nil &&
-            outputSpec.inputConnections!.isEmpty == false &&
-            outputSpec.outputConnection == nil,
-            "No proper spec found for an output filter"
-        )
-
-        cExternalOutputs = outputSpec.cOutputs
-        cBiases += outputSpec.cOutputs
-        cWeights += outputSpec.cOutputs * outputSpec.cInputs
+        self.layerSpecs = counts.layerSpecs
     }
 }
 
