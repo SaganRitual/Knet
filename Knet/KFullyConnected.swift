@@ -36,6 +36,9 @@ class KFullyConnected: HasOrderProtocol {
     let pInputs: UnsafeMutableRawPointer
     let pOutputs: UnsafeMutableRawPointer
 
+    var layerInputBuffer: UnsafeBufferPointer<Float>!
+    var layerOutputBuffer: UnsafeBufferPointer<Float>!
+
     init(
         order: Int, cInputs: Int, cOutputs: Int,
         activation: BNNSActivation,
@@ -54,6 +57,8 @@ class KFullyConnected: HasOrderProtocol {
         ) else { fatalError("What is it this time!") }
 
         self.order = order
+        self.layerInputBuffer = pInputs
+        self.layerOutputBuffer = pOutputs
 
         self.filter = f
         self.pInputs = UnsafeMutableRawPointer(mutating: pInputs.baseAddress!)

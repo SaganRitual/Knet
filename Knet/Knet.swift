@@ -51,6 +51,8 @@ class Knet {
         launchNet()
     }
 
+    deinit { pEverything.deallocate() }
+
     func activate() { fcStack.forEach { $0.activate() } }
 }
 
@@ -76,20 +78,18 @@ private extension Knet {
             rebasing: pEverything[sBiases..<(sBiases + layerSpec.cOutputs)]
         )
 
-        let nextSInputs = isInputLayer ? cExternalInputs : layerSpec.cInputs
-
         let pInputs = UnsafeBufferPointer(
-            rebasing: pEverything[sInputs..<(sInputs + nextSInputs)]
+            rebasing: pEverything[sInputs..<(sInputs + layerSpec.cInputs)]
         )
 
         let pOutputs = UnsafeBufferPointer(
             rebasing: pEverything[sOutputs..<(sOutputs + layerSpec.cOutputs)]
         )
 
-        let cWeights = layerSpec.cInputs * layerSpec.cOutputs
+        let cLayerWeights = layerSpec.cInputs * layerSpec.cOutputs
 
         let pWeights = UnsafeBufferPointer(
-            rebasing: pEverything[sWeights..<(sWeights + cWeights)]
+            rebasing: pEverything[sWeights..<(sWeights + cLayerWeights)]
         )
 
         let fc = KFullyConnected(
@@ -103,7 +103,7 @@ private extension Knet {
         fcLookup[layerSpec.name] = fc
 
         sBiases += pBiases.count
-        sInputs = sOutputs
+        sInputs += pInputs.count
         sOutputs += pOutputs.count
         sWeights += pWeights.count
     }
