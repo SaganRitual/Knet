@@ -11,6 +11,17 @@ struct KnetCounts: CustomDebugStringConvertible {
         + " cBiases: \(cBiases) cWeights: \(cWeights) cStatics: \(cStatics)"
     }
 
+    fileprivate init(_ scratch: ScratchCounts) {
+        self.layerSpecs = scratch.layerSpecs
+        self.cExternalInputs = scratch.cExternalInputs
+        self.cExternalOutputs = scratch.cExternalOutputs
+        self.cInternalIOputs = scratch.cInternalIOputs
+        self.cIOData = scratch.cIOData
+        self.cBiases = scratch.cBiases
+        self.cWeights = scratch.cWeights
+        self.cStatics = scratch.cStatics
+    }
+
     let layerSpecs: [KFCSpec]
 
     let cExternalInputs: Int
@@ -26,20 +37,41 @@ struct KnetCounts: CustomDebugStringConvertible {
 extension KnetCounts {
     static func setupCounts(json netStructure: String) -> KnetCounts {
         let decoder = JSONDecoder()
+        let scratch = ScratchCounts()
 
-        guard let layerSpecs = try? decoder.decode(
-            [KFCSpec].self, from: netStructure.data(using: .utf8)!
-        )
-        .sorted(by: Knet.orderSort) else {
-            fatalError("Couldn't decode your crappy json, loser")
+        do {
+            scratch.layerSpecs = try decoder.decode(
+                [KFCSpec].self, from: netStructure.data(using: .utf8)!
+            ).sorted(by: Knet.orderSort)
+        } catch {
+            fatalError(
+                "\n\nCan't decode your crappy JSON, loser."
+                + "\nAlso, here's a useless error message for you: "
+                + "\n\(error.localizedDescription)\n\n"
+            )
         }
 
-        var cExternalInputs = 0
-        var cExternalOutputs = 0
-        var cInternalIOputs = 0
-        var cBiases = 0
-        var cWeights = 0
+        scratch.setupCounts()
 
+        return KnetCounts(scratch)
+    }
+}
+
+// Same as KnetCounts, but with vars so I can use them for
+// counting. I can't stand to make the real KnetCounts writable
+private class ScratchCounts {
+    var layerSpecs: [KFCSpec]!
+
+    var cExternalInputs: Int = 0
+    var cExternalOutputs: Int = 0
+    var cInternalIOputs: Int = 0
+    var cIOData: Int = 0
+
+    var cBiases: Int = 0
+    var cWeights: Int = 0
+    var cStatics: Int = 0
+
+    func setupCounts() {
         let sensorSpecs = layerSpecs.filter { $0.inputConnections == nil }
 
         for sensorSpec in sensorSpecs {
@@ -71,17 +103,5 @@ extension KnetCounts {
         cExternalOutputs = outputSpec.cOutputs
         cBiases += outputSpec.cOutputs
         cWeights += outputSpec.cOutputs * outputSpec.cInputs
-
-        let cIOData = cExternalInputs + cExternalOutputs + cInternalIOputs
-        let cStatics = cBiases + cWeights
-
-        return KnetCounts(
-            layerSpecs: layerSpecs,
-            cExternalInputs: cExternalInputs,
-            cExternalOutputs: cExternalOutputs,
-            cInternalIOputs: cInternalIOputs, cIOData: cIOData,
-            cBiases: cBiases, cWeights: cWeights, cStatics: cStatics
-        )
     }
-
 }

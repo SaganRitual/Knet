@@ -16,7 +16,6 @@ let netStructure = """
   },
   {
     "activation" : "identity",
-    "cInputs" : \(area),
     "cOutputs" : \(area),
     "name" : "aggregator",
     "order" : 6,
