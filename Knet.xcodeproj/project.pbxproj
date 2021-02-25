@@ -9,9 +9,12 @@
 /* Begin PBXBuildFile section */
 		D404F43C25DFB39E0061A641 /* KFullyConnected.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F43B25DFB39E0061A641 /* KFullyConnected.swift */; };
 		D404F44325DFC26D0061A641 /* KnetJson.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44225DFC26D0061A641 /* KnetJson.swift */; };
-		D404F44825DFC3B50061A641 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44725DFC3B50061A641 /* main.swift */; };
 		D404F44B25DFC45A0061A641 /* Knet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44A25DFC45A0061A641 /* Knet.swift */; };
 		D404F44E25DFC7EC0061A641 /* KnetCounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44D25DFC7EC0061A641 /* KnetCounts.swift */; };
+		D49ABAD425E7234600F931D7 /* KPoolingLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49ABAD325E7234600F931D7 /* KPoolingLayer.swift */; };
+		D49ABAD725E729B300F931D7 /* Knet.Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49ABAD625E729B300F931D7 /* Knet.Setup.swift */; };
+		D49ABADE25E732DF00F931D7 /* KnetLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49ABADD25E732DF00F931D7 /* KnetLayer.swift */; };
+		D4EDD48125E75EA200C27F2F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44725DFC3B50061A641 /* main.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,7 +31,7 @@
 
 /* Begin PBXFileReference section */
 		D404F42725DFB1090061A641 /* Knet */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Knet; sourceTree = BUILT_PRODUCTS_DIR; };
-		D404F42A25DFB1090061A641 /* mange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mange.swift; sourceTree = "<group>"; };
+		D404F42A25DFB1090061A641 /* mangey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mangey.swift; sourceTree = "<group>"; };
 		D404F43225DFB1240061A641 /* swiftlint.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = swiftlint.sh; sourceTree = "<group>"; };
 		D404F43325DFB1240061A641 /* .swiftlint.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		D404F43425DFB1240061A641 /* .overcommit.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .overcommit.yml; sourceTree = "<group>"; };
@@ -37,6 +40,9 @@
 		D404F44725DFC3B50061A641 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		D404F44A25DFC45A0061A641 /* Knet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knet.swift; sourceTree = "<group>"; };
 		D404F44D25DFC7EC0061A641 /* KnetCounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnetCounts.swift; sourceTree = "<group>"; };
+		D49ABAD325E7234600F931D7 /* KPoolingLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPoolingLayer.swift; sourceTree = "<group>"; };
+		D49ABAD625E729B300F931D7 /* Knet.Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knet.Setup.swift; sourceTree = "<group>"; };
+		D49ABADD25E732DF00F931D7 /* KnetLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnetLayer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,12 +78,15 @@
 		D404F42925DFB1090061A641 /* Knet */ = {
 			isa = PBXGroup;
 			children = (
-				D404F42A25DFB1090061A641 /* mange.swift */,
+				D404F42A25DFB1090061A641 /* mangey.swift */,
 				D404F43B25DFB39E0061A641 /* KFullyConnected.swift */,
 				D404F44225DFC26D0061A641 /* KnetJson.swift */,
 				D404F44725DFC3B50061A641 /* main.swift */,
 				D404F44A25DFC45A0061A641 /* Knet.swift */,
+				D49ABAD625E729B300F931D7 /* Knet.Setup.swift */,
 				D404F44D25DFC7EC0061A641 /* KnetCounts.swift */,
+				D49ABADD25E732DF00F931D7 /* KnetLayer.swift */,
+				D49ABAD325E7234600F931D7 /* KPoolingLayer.swift */,
 			);
 			path = Knet;
 			sourceTree = "<group>";
@@ -161,9 +170,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				D404F44325DFC26D0061A641 /* KnetJson.swift in Sources */,
+				D49ABADE25E732DF00F931D7 /* KnetLayer.swift in Sources */,
+				D4EDD48125E75EA200C27F2F /* main.swift in Sources */,
 				D404F43C25DFB39E0061A641 /* KFullyConnected.swift in Sources */,
 				D404F44E25DFC7EC0061A641 /* KnetCounts.swift in Sources */,
-				D404F44825DFC3B50061A641 /* main.swift in Sources */,
+				D49ABAD425E7234600F931D7 /* KPoolingLayer.swift in Sources */,
+				D49ABAD725E729B300F931D7 /* Knet.Setup.swift in Sources */,
 				D404F44B25DFC45A0061A641 /* Knet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

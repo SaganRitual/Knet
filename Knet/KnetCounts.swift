@@ -12,7 +12,7 @@ struct KnetCounts: CustomDebugStringConvertible {
     }
 
     fileprivate init(_ scratch: ScratchCounts) {
-        self.layerSpecs = scratch.layerSpecs
+        self.netSpec = scratch.knetSpec
         self.cExternalInputs = scratch.cExternalInputs
         self.cExternalOutputs = scratch.cExternalOutputs
         self.cInternalIOputs = scratch.cInternalIOputs
@@ -22,7 +22,7 @@ struct KnetCounts: CustomDebugStringConvertible {
         self.cStatics = scratch.cStatics
     }
 
-    let layerSpecs: [KFCSpec]
+    let netSpec: KnetSpec
 
     let cExternalInputs: Int
     let cExternalOutputs: Int
@@ -40,9 +40,9 @@ extension KnetCounts {
         let scratch = ScratchCounts()
 
         do {
-            scratch.layerSpecs = try decoder.decode(
-                [KFCSpec].self, from: netStructure.data(using: .utf8)!
-            ).sorted(by: Knet.orderSort)
+            scratch.knetSpec = try decoder.decode(
+                KnetSpec.self, from: netStructure.data(using: .utf8)!
+            )
         } catch {
             fatalError(
                 "\n\nCan't decode your crappy JSON, loser."
@@ -60,7 +60,7 @@ extension KnetCounts {
 // Same as KnetCounts, but with vars so I can use them for
 // counting. I can't stand to make the real KnetCounts writable
 private class ScratchCounts {
-    var layerSpecs: [KFCSpec]!
+    var knetSpec: KnetSpec!
 
     var cExternalInputs: Int = 0
     var cExternalOutputs: Int = 0
@@ -71,27 +71,29 @@ private class ScratchCounts {
     var cWeights: Int = 0
     var cStatics: Int = 0
 
-    func setupCounts() {
-        let sensorSpecs = layerSpecs.filter { $0.inputConnections == nil }
+    func collateSpecs(
+        by layerLevel: Knet.LayerLevel
+    ) -> [KnetLayerSpecProtocol] {
+        (knetSpec.poolingLayers + knetSpec.fullyConnectedLayers).filter {
+            $0.layerLevel == layerLevel
+        }.sorted { $0.order < $1.order }
+    }
 
-        for sensorSpec in sensorSpecs {
+    func setupCounts() {
+        for sensorSpec in collateSpecs(by: .top) {
             cExternalInputs += sensorSpec.cInputs
             cInternalIOputs += sensorSpec.cOutputs
             cBiases += sensorSpec.cOutputs
             cWeights += sensorSpec.cOutputs * sensorSpec.cInputs
         }
 
-        let hiddenSpecs = layerSpecs.filter {
-            $0.inputConnections != nil && $0.outputConnection != nil
-        }
-
-        for layerSpec in hiddenSpecs {
+        for layerSpec in collateSpecs(by: .hidden) {
             cInternalIOputs += layerSpec.cOutputs
             cBiases += layerSpec.cOutputs
             cWeights += layerSpec.cOutputs * layerSpec.cInputs
         }
 
-        let outputSpec = layerSpecs.last!
+        let outputSpec = collateSpecs(by: .bottom).first!
 
         precondition(
             outputSpec.inputConnections != nil &&

@@ -3,8 +3,17 @@
 import Accelerate
 import Foundation
 
+protocol HasWeightsProtocol {
+    var cWeights: Int { get }
+}
+
 protocol HasOrderProtocol {
     var order: Int { get }
+}
+
+struct KnetSpec: Codable {
+    let fullyConnectedLayers: [KFCSpec]
+    let poolingLayers: [KPLSpec]
 }
 
 class Knet {
@@ -56,96 +65,29 @@ class Knet {
     func activate() { fcStack.forEach { $0.activate() } }
 }
 
-private extension Knet {
+extension Knet {
+    enum Activation: String, Codable { case identity, tanh }
+    enum LayerLevel: String, Codable { case top, hidden, bottom }
+    enum PoolingFunction: String, Codable { case average, max }
 
-    func resetBufferIndexes() {
-        sBiases = cIOData // Biases come after all the i/o buffers
-        sInputs = 0
-        sOutputs = cExternalInputs
-        sWeights = sBiases + cBiases
-    }
-
-    func setupBuffers(_ layerSpecs: [KFCSpec]) {
-        pEverything = .allocate(capacity: cEverything)
-
-        layerSpecs.forEach {
-            setupBuffers(layerSpec: $0, isInputLayer: $0.inputConnections == nil)
+    static func bnnsActivation(_ kActivation: Activation) -> BNNSActivation {
+        switch kActivation {
+        case .identity: return BNNSActivation(function: .identity)
+        case .tanh:     return BNNSActivation(function: .tanh)
         }
     }
 
-    func setupBuffers(layerSpec: KFCSpec, isInputLayer: Bool) {
-        let pBiases = UnsafeBufferPointer(
-            rebasing: pEverything[sBiases..<(sBiases + layerSpec.cOutputs)]
-        )
-
-        let pInputs = UnsafeBufferPointer(
-            rebasing: pEverything[sInputs..<(sInputs + layerSpec.cInputs)]
-        )
-
-        let pOutputs = UnsafeBufferPointer(
-            rebasing: pEverything[sOutputs..<(sOutputs + layerSpec.cOutputs)]
-        )
-
-        let cLayerWeights = layerSpec.cInputs * layerSpec.cOutputs
-
-        let pWeights = UnsafeBufferPointer(
-            rebasing: pEverything[sWeights..<(sWeights + cLayerWeights)]
-        )
-
-        let fc = KFullyConnected(
-            order: layerSpec.order,
-            cInputs: layerSpec.cInputs, cOutputs: layerSpec.cOutputs,
-            activation: KFullyConnected.bnnsActivation(layerSpec.activation),
-            pBiases: pBiases, pInputs: pInputs,
-            pOutputs: pOutputs, pWeights: pWeights
-        )
-
-        fcLookup[layerSpec.name] = fc
-
-        sBiases += pBiases.count
-        sInputs += pInputs.count
-        sOutputs += pOutputs.count
-        sWeights += pWeights.count
+    static func bnnsPoolingFunction(
+        _ kPoolingFunction: PoolingFunction
+    ) -> BNNSPoolingFunction {
+        switch kPoolingFunction {
+        case .average: return BNNSPoolingFunction.average
+        case .max:     return BNNSPoolingFunction.max
+        }
     }
 
-    func setupCounts(json netStructure: String) {
-        let counts = KnetCounts.setupCounts(json: netStructure)
-
-        self.cExternalInputs = counts.cExternalInputs
-        self.cExternalOutputs = counts.cExternalOutputs
-        self.cInternalIOputs = counts.cInternalIOputs
-
-        self.cBiases = counts.cBiases
-        self.cWeights = counts.cWeights
-
-        self.layerSpecs = counts.layerSpecs
-    }
-}
-
-extension Knet {
-    func launchNet() {
-        resetBufferIndexes()
-
-        self.biasesBuffer = UnsafeMutableBufferPointer(
-            rebasing: pEverything[sBiases..<(sBiases + cBiases)]
-        )
-
-        self.inputBuffer = UnsafeMutableBufferPointer(
-            rebasing: pEverything[sInputs..<(sInputs + cExternalInputs)]
-        )
-
-        self.outputBuffer = UnsafeMutableBufferPointer(
-            rebasing: pEverything[(cIOData - cExternalOutputs)..<cIOData]
-        )
-
-        self.staticsBuffer = UnsafeMutableBufferPointer(
-            rebasing: pEverything[sBiases..<cEverything]
-        )
-
-        self.weightsBuffer = UnsafeMutableBufferPointer(
-            rebasing: pEverything[sWeights..<(sWeights + cWeights)]
-        )
-
-        self.fcStack = fcLookup.values.sorted(by: Knet.orderSort)
-    }
+    static var filterParameters = BNNSFilterParameters(
+        flags: BNNSFlags.useClientPointer.rawValue, n_threads: 0,
+        alloc_memory: nil, free_memory: nil
+    )
 }

@@ -3,42 +3,18 @@
 import Accelerate
 import Foundation
 
-struct KFCSpec: Codable, HasOrderProtocol {
-    enum Activation: String, Codable { case identity, tanh }
-
-    let activation: Activation
+struct KFCSpec: Codable, KnetLayerSpecProtocol {
+    let activation: Knet.Activation
     let cInputs: Int
     let cOutputs: Int
+    var layerLevel: Knet.LayerLevel
     let name: String
     let order: Int
     let inputConnections: [String]?
     let outputConnection: String?
 }
 
-class KFullyConnected: HasOrderProtocol {
-    enum Level { case top, hidden, bottom }
-
-    static func bnnsActivation(_ kActivation: KFCSpec.Activation) -> BNNSActivation {
-        switch kActivation {
-        case .identity: return BNNSActivation(function: .identity)
-        case .tanh:     return BNNSActivation(function: .tanh)
-        }
-    }
-
-    static var filterParameters = BNNSFilterParameters(
-        flags: BNNSFlags.useClientPointer.rawValue, n_threads: 0,
-        alloc_memory: nil, free_memory: nil
-    )
-
-    let order: Int
-
-    let filter: BNNSFilter
-    let pInputs: UnsafeMutableRawPointer
-    let pOutputs: UnsafeMutableRawPointer
-
-    var layerInputBuffer: UnsafeBufferPointer<Float>!
-    var layerOutputBuffer: UnsafeBufferPointer<Float>!
-
+class KFullyConnected: KnetLayer {
     init(
         order: Int, cInputs: Int, cOutputs: Int,
         activation: BNNSActivation,
@@ -52,20 +28,16 @@ class KFullyConnected: HasOrderProtocol {
             pBiases: pBiases, pWeights: pWeights
         )
 
-        guard let f = BNNSFilterCreateLayerFullyConnected(
-            &layerParameters, &KFullyConnected.filterParameters
+        guard let filter = BNNSFilterCreateLayerFullyConnected(
+            &layerParameters, &Knet.filterParameters
         ) else { fatalError("What is it this time!") }
 
-        self.order = order
-        self.layerInputBuffer = pInputs
-        self.layerOutputBuffer = pOutputs
-
-        self.filter = f
-        self.pInputs = UnsafeMutableRawPointer(mutating: pInputs.baseAddress!)
-        self.pOutputs = UnsafeMutableRawPointer(mutating: pOutputs.baseAddress!)
+        super.init(
+            order: order, cInputs: cInputs, cOutputs: cOutputs,
+            activation: activation, pBiases: pBiases, pInputs: pInputs,
+            pOutputs: pOutputs, pWeights: pWeights, filter: filter
+        )
     }
-
-    func activate() { BNNSFilterApply(filter, pInputs, pOutputs) }
 }
 
 private extension KFullyConnected {
@@ -137,11 +109,4 @@ private extension KFullyConnected {
         )
     }
     // swiftlint:enable function_body_length
-}
-
-struct KDescriptorSet {
-    let i_desc: BNNSNDArrayDescriptor
-    let o_desc: BNNSNDArrayDescriptor
-    let w_desc: BNNSNDArrayDescriptor
-    let bias: BNNSNDArrayDescriptor
 }
