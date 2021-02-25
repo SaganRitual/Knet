@@ -3,7 +3,7 @@
 import Accelerate
 import Foundation
 
-let net = Knet(json: netStructure)
+let net = Knet(KnetStructure())
 
 let pEverything = net.pEverything
 

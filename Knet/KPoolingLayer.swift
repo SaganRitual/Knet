@@ -3,65 +3,87 @@
 import Accelerate
 import Foundation
 
-struct KPLSpec: Codable, KnetLayerSpecProtocol {
+class KPLSpec: KnetLayerSpecProtocol {
     let activation: Knet.Activation
-    let inputWidth: Int
-    let inputHeight: Int
-    let cOutputs: Int
-    let kernelSide: Int
-    let layerLevel: Knet.LayerLevel
-    let name: String
-    let order: Int
     let poolingFunction: Knet.PoolingFunction
-    let inputConnections: [String]?
-    let outputConnection: String?
 
-    var cInputs: Int { inputWidth * inputHeight }
-}
+    let imageWidth: Int
+    let imageHeight: Int
+    let kernelWidth: Int
+    let kernelHeight: Int
 
-class KPoolingLayer: KnetLayer {
+    var imageArea: Int { imageWidth * imageHeight }
+    var cInputs: Int { imageArea }
+    var cOutputs: Int { imageArea }
+
+    var startInputs = 0
+    var startOutputs: Int { startInputs + cInputs }
+    var startBiases: Int { startOutputs + cOutputs }
+
+    var inputSpecs = [KnetLayerSpecProtocol]()
+    var outputSpecs = [KnetLayerSpecProtocol]()
 
     init(
-        order: Int, inputWidth: Int, inputHeight: Int,
-        kernelSide: Int, cOutputs: Int, activation: BNNSActivation,
-        poolingFunction: BNNSPoolingFunction,
+        activation: Knet.Activation,
+        poolingFunction: Knet.PoolingFunction,
+        imageWidth: Int, imageHeight: Int,
+        kernelWidth: Int, kernelHeight: Int
+    ) {
+        self.activation = activation
+        self.poolingFunction = poolingFunction
+        self.imageWidth = imageWidth
+        self.imageHeight = imageHeight
+        self.kernelWidth = kernelWidth
+        self.kernelHeight = kernelHeight
+    }
+
+    func makeLayer(
         pBiases: UnsafeBufferPointer<Float>,
         pInputs: UnsafeBufferPointer<Float>,
         pOutputs: UnsafeBufferPointer<Float>,
-        filter: BNNSFilter
+        pWeights: UnsafeBufferPointer<Float>?
+    ) -> KnetLayerProtocol {
+        KPoolingLayer(
+            layerSpec: self, pBiases: pBiases,
+            pInputs: pInputs, pOutputs: pOutputs
+        )
+    }
+}
+
+class KPoolingLayer: KnetLayer {
+    init(
+        layerSpec: KPLSpec,
+        pBiases: UnsafeBufferPointer<Float>,
+        pInputs: UnsafeBufferPointer<Float>,
+        pOutputs: UnsafeBufferPointer<Float>
     ) {
         var layerParameters = KPoolingLayer.makeLayerParameters(
-            inputWidth: inputWidth, inputHeight: inputHeight,
-            kernelSide: kernelSide, cOutputs: cOutputs, activation: activation,
-            poolingFunction: poolingFunction, pBiases: pBiases
+            layerSpec: layerSpec,
+            pBiases: pBiases, pInputs: pInputs, pOutputs: pOutputs
         )
 
         guard let filter = BNNSFilterCreateLayerPooling(
             &layerParameters, &Knet.filterParameters
         ) else { fatalError("What is it this time!") }
 
-        super.init(
-            order: order, cInputs: inputWidth * inputHeight, cOutputs: cOutputs,
-            activation: activation, pBiases: pBiases, pInputs: pInputs,
-            pOutputs: pOutputs, pWeights: nil, filter: filter
-        )
+        super.init(pInputs: pInputs, pOutputs: pOutputs, filter: filter)
     }
 }
 
 private extension KPoolingLayer {
     // swiftlint:disable function_body_length
-    // swiftlint:disable function_parameter_count
     static func makeLayerParameters(
-        inputWidth: Int, inputHeight: Int, kernelSide: Int, cOutputs: Int,
-        activation: BNNSActivation, poolingFunction: BNNSPoolingFunction,
-        pBiases: UnsafeBufferPointer<Float>
+        layerSpec: KPLSpec,
+        pBiases: UnsafeBufferPointer<Float>,
+        pInputs: UnsafeBufferPointer<Float>,
+        pOutputs: UnsafeBufferPointer<Float>
     ) -> BNNSLayerParametersPooling {
         let rpBiases = UnsafeMutableRawPointer(mutating: pBiases.baseAddress)
 
         let i_desc = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutImageCHW,
-            size: (inputWidth, inputHeight, 1, 0, 0, 0, 0, 0),
+            size: (layerSpec.imageWidth, layerSpec.imageHeight, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: nil,
             data_type: .float,
@@ -74,7 +96,7 @@ private extension KPoolingLayer {
         let o_desc = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutImageCHW,
-            size: (inputWidth, inputHeight, 1, 0, 0, 0, 0, 0),
+            size: (layerSpec.imageWidth, layerSpec.imageHeight, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: nil,
             data_type: .float,
@@ -87,7 +109,7 @@ private extension KPoolingLayer {
         let bias = BNNSNDArrayDescriptor(
             flags: BNNSNDArrayFlags(0),
             layout: BNNSDataLayoutVector,
-            size: (cOutputs, 1, 1, 0, 0, 0, 0, 0),
+            size: (layerSpec.cBiases, 1, 1, 0, 0, 0, 0, 0),
             stride: (0, 0, 0, 0, 0, 0, 0, 0),
             data: rpBiases,
             data_type: .float,
@@ -99,14 +121,15 @@ private extension KPoolingLayer {
 
         return BNNSLayerParametersPooling(
             i_desc: i_desc, o_desc: o_desc, bias: bias,
-            activation: activation, pooling_function: poolingFunction,
-            k_width: kernelSide, k_height: kernelSide,
+            activation: Knet.bnnsActivation(layerSpec.activation),
+            pooling_function: Knet.bnnsPoolingFunction(layerSpec.poolingFunction),
+            k_width: layerSpec.kernelWidth, k_height: layerSpec.kernelHeight,
             x_stride: 1, y_stride: 1,
             x_dilation_stride: 0, y_dilation_stride: 0,
-            x_padding: kernelSide / 2, y_padding: kernelSide / 2,
+            x_padding: layerSpec.kernelWidth / 2,
+            y_padding: layerSpec.kernelHeight / 2,
             pad: (0, 0, 0, 0)
         )
     }
     // swiftlint:enable function_body_length
-    // swiftline:enable function_parameter_count
 }

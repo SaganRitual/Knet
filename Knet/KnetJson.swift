@@ -2,81 +2,85 @@
 
 import Foundation
 
-let inputHeight = 7
-let inputWidth = 7
-let area = inputWidth * inputHeight
-let kernelSide = 3
-
 /*
  {
-   "inputHeight" : 7,
-   "order" : 7,
-   "kernelSide" : 3,
-   "inputWidth" : 7,
-   "cOutputs" : 49,
+   "inputHeight" : \(innerGridSize.height),
+   "layerLevel" : "top",
+   "order" : 1,
+   "kernelSide" : \(kernelSide),
+   "inputWidth" : \(innerGridSize.width),
+   "poolingFunction" : "average",
+   "cOutputs" : \(innerGridSize.area()),
+   "outputConnection" : "red-decider",
+   "name" : "redpool",
+   "activation" : "tanh"
+ }
+
+ {
+   "activation" : "tanh",
+   "layerLevel" : "hidden",
+   "order" : 2,
+   "outputConnection" : "good-measure",
+   "cOutputs" : \(innerGridSize.area()),
    "inputConnections" : [
-     "mannaEnergy",
-     "aggregator"
+     "blackpool"
    ],
-   "name" : "pool",
-   "activation" : "identity"
+   "cInputs" : \(innerGridSize.area()),
+   "name" : "black-decider"
+ },
+ {
+   "activation" : "tanh",
+   "layerLevel" : "hidden",
+   "order" : 3,
+   "outputConnection" : "good-measure",
+   "cOutputs" : \(innerGridSize.area()),
+   "inputConnections" : [
+     "redpool"
+   ],
+   "cInputs" : \(innerGridSize.area()),
+   "name" : "red-decider"
+ },
+ {
+   "activation" : "tanh",
+   "layerLevel" : "bottom",
+   "order" : 4,
+   "cOutputs" : \(innerGridSize.width),
+   "inputConnections" : [
+     "blackpool"
+   ],
+   "cInputs" : \(innerGridSize.area()),
+   "name" : "good-measure"
  }
 
  */
+
+let kernelSide = 3
+
+struct IGS {
+    let height: Int = 3
+    let width: Int = 3
+    func area() -> Int { height * width }
+}
+
+let innerGridSize = IGS()
 
 let netStructure = """
 {
   "poolingLayers" : [
     {
-      "inputHeight" : 7,
+      "inputHeight" : \(innerGridSize.height),
       "layerLevel" : "top",
       "order" : 0,
-      "kernelSide" : 3,
-      "inputWidth" : 7,
+      "kernelSide" : \(kernelSide),
+      "inputWidth" : \(innerGridSize.width),
       "poolingFunction" : "average",
-      "cOutputs" : 49,
-      "outputConnection" : "aggregator",
+      "cOutputs" : \(innerGridSize.area()),
+      "outputConnection" : "good-measure",
       "name" : "blackpool",
-      "activation" : "identity"
-    },
-    {
-      "inputHeight" : 7,
-      "layerLevel" : "top",
-      "order" : 1,
-      "kernelSide" : 3,
-      "inputWidth" : 7,
-      "poolingFunction" : "average",
-      "cOutputs" : 49,
-      "outputConnection" : "aggregator",
-      "name" : "redpool",
-      "activation" : "identity"
+      "activation" : "tanh"
     }
   ],
   "fullyConnectedLayers" : [
-    {
-      "activation" : "identity",
-      "layerLevel" : "hidden",
-      "order" : 2,
-      "outputConnection" : "decider",
-      "cOutputs" : 49,
-      "inputConnections" : [
-        "blackpool",
-        "redpool"
-      ],
-      "cInputs" : 49,
-      "name" : "aggregator"
-    },
-    {
-      "activation" : "identity",
-      "layerLevel" : "bottom",
-      "order" : 3,
-      "cOutputs" : 7,
-      "inputConnections" : [
-        "aggregator"
-      ],
-      "cInputs" : 49,
-      "name" : "aggregator"
-    }
   ]
 }
 """

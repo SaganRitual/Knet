@@ -3,25 +3,18 @@
 import Foundation
 
 extension Knet {
-
-    func resetBufferIndexes() {
-        sBiases = cIOData // Biases come after all the i/o buffers
-        sInputs = 0
-        sOutputs = cExternalInputs
-        sWeights = sBiases + cBiases
-    }
-
-    func setupBuffers(_ layerSpecs: [KFCSpec]) {
+    func setupBuffers(_ netStructure: KnetStructure) {
+        resetBuffers()
         pEverything = .allocate(capacity: cEverything)
 
-        layerSpecs.forEach {
-            setupBuffers(layerSpec: $0, isInputLayer: $0.inputConnections == nil)
+        for sensorSpec in netStructure.sensorLayer {
+            setupBuffers(sensorSpec)
         }
     }
 
-    func setupBuffers(layerSpec: KFCSpec, isInputLayer: Bool) {
+    func setupBuffers(_ layerSpec: KnetLayerSpecProtocol) {
         let pBiases = UnsafeBufferPointer(
-            rebasing: pEverything[sBiases..<(sBiases + layerSpec.cOutputs)]
+            rebasing: pEverything[sBiases..<(sBiases + layerSpec.cBiases)]
         )
 
         let pInputs = UnsafeBufferPointer(
@@ -32,30 +25,35 @@ extension Knet {
             rebasing: pEverything[sOutputs..<(sOutputs + layerSpec.cOutputs)]
         )
 
-        let cLayerWeights = layerSpec.cInputs * layerSpec.cOutputs
+        let pWeights: UnsafeBufferPointer<Float>?
+        if let ls = layerSpec as? HasWeightsProtocol, ls.cWeights > 0 {
+            pWeights = UnsafeBufferPointer(
+                rebasing: pEverything[sWeights..<(sWeights + ls.cWeights)]
+            )
+        } else { pWeights = nil }
 
-        let pWeights = UnsafeBufferPointer(
-            rebasing: pEverything[sWeights..<(sWeights + cLayerWeights)]
-        )
-
-        let fc = KFullyConnected(
-            order: layerSpec.order,
-            cInputs: layerSpec.cInputs, cOutputs: layerSpec.cOutputs,
-            activation: Knet.bnnsActivation(layerSpec.activation),
+        let layer = layerSpec.makeLayer(
             pBiases: pBiases, pInputs: pInputs,
             pOutputs: pOutputs, pWeights: pWeights
         )
 
-        fcLookup[layerSpec.name] = fc
+        layerStack.append(layer)
 
         sBiases += pBiases.count
         sInputs += pInputs.count
         sOutputs += pOutputs.count
-        sWeights += pWeights.count
+        sWeights += pWeights?.count ?? 0
     }
 
-    func setupCounts(json netStructure: String) {
-        let counts = KnetCounts.setupCounts(json: netStructure)
+    func resetBuffers() {
+        sInputs = 0
+        sOutputs = cExternalInputs
+        sBiases = cIOData
+        sWeights = sBiases + cBiases
+    }
+
+    func setupCounts(_ netStructure: KnetStructure) {
+        let counts = KnetCounts().setupCounts(netStructure)
 
         self.cExternalInputs = counts.cExternalInputs
         self.cExternalOutputs = counts.cExternalOutputs
@@ -68,7 +66,7 @@ extension Knet {
 
 extension Knet {
     func launchNet() {
-        resetBufferIndexes()
+        resetBuffers()
 
         self.biasesBuffer = UnsafeMutableBufferPointer(
             rebasing: pEverything[sBiases..<(sBiases + cBiases)]
@@ -89,7 +87,5 @@ extension Knet {
         self.weightsBuffer = UnsafeMutableBufferPointer(
             rebasing: pEverything[sWeights..<(sWeights + cWeights)]
         )
-
-        self.fcStack = fcLookup.values.sorted(by: Knet.orderSort)
     }
 }

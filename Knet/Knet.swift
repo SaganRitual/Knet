@@ -3,30 +3,8 @@
 import Accelerate
 import Foundation
 
-protocol HasWeightsProtocol {
-    var cWeights: Int { get }
-}
-
-protocol HasOrderProtocol {
-    var order: Int { get }
-}
-
-struct KnetSpec: Codable {
-    let fullyConnectedLayers: [KFCSpec]
-    let poolingLayers: [KPLSpec]
-}
-
 class Knet {
-    func orderSort(_ lhs: String, _ rhs: String) -> Bool {
-        Knet.orderSort(fcLookup[lhs]!, fcLookup[rhs]!)
-    }
-
-    static func orderSort(_ lhs: HasOrderProtocol, _ rhs: HasOrderProtocol) -> Bool {
-        lhs.order < rhs.order
-    }
-
-    var fcLookup = [String: KFullyConnected]()
-    var fcStack: [KFullyConnected]!
+    var layerStack = [KnetLayerProtocol]()
 
     var cExternalInputs = 0
     var cExternalOutputs = 0
@@ -36,8 +14,6 @@ class Knet {
     var cBiases = 0
     var cWeights = 0
     var cStatics: Int { cBiases + cWeights }
-
-    var layerSpecs: [KFCSpec]!
 
     var pEverything: UnsafeMutableBufferPointer<Float>!
     var cEverything: Int { cIOData + cBiases + cWeights }
@@ -53,21 +29,20 @@ class Knet {
     var staticsBuffer: UnsafeMutableBufferPointer<Float>!
     var weightsBuffer: UnsafeMutableBufferPointer<Float>!
 
-    init(json netStructure: String) {
-        setupCounts(json: netStructure)
-        resetBufferIndexes()
-        setupBuffers(layerSpecs)
+    init(_ netStructure: KnetStructure) {
+        setupCounts(netStructure)
+        setupBuffers(netStructure)
         launchNet()
     }
 
     deinit { pEverything.deallocate() }
 
-    func activate() { fcStack.forEach { $0.activate() } }
+    func activate() { layerStack.forEach { $0.activate() } }
 }
 
 extension Knet {
     enum Activation: String, Codable { case identity, tanh }
-    enum LayerLevel: String, Codable { case top, hidden, bottom }
+    enum LayerLevel: String, Codable, CaseIterable { case top, hidden, bottom }
     enum PoolingFunction: String, Codable { case average, max }
 
     static func bnnsActivation(_ kActivation: Activation) -> BNNSActivation {

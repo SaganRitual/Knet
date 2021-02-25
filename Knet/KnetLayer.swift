@@ -3,24 +3,36 @@
 import Accelerate
 import Foundation
 
-protocol KnetLayerSpecProtocol: HasOrderProtocol, HasWeightsProtocol {
-    var activation: Knet.Activation { get }
-    var cInputs: Int { get }
-    var cOutputs: Int { get }
-    var layerLevel: Knet.LayerLevel { get }
-    var name: String { get }
-    var order: Int { get }
-    var inputConnections: [String]? { get }
-    var outputConnection: String? { get }
+protocol HasWeightsProtocol: KnetLayerSpecProtocol {
+    var cWeights: Int { get }
 }
 
-extension KnetLayerSpecProtocol {
+extension HasWeightsProtocol {
     var cWeights: Int { cInputs * cOutputs }
 }
 
-protocol KnetLayerProtocol: class, HasOrderProtocol {
-    var order: Int { get }
+protocol KnetLayerSpecProtocol: class {
+    var activation: Knet.Activation { get }
+    var cBiases: Int { get }
+    var cInputs: Int { get }
+    var cOutputs: Int { get }
 
+    var inputSpecs: [KnetLayerSpecProtocol] { get set }
+    var outputSpecs: [KnetLayerSpecProtocol] { get set }
+
+    func makeLayer(
+        pBiases: UnsafeBufferPointer<Float>,
+        pInputs: UnsafeBufferPointer<Float>,
+        pOutputs: UnsafeBufferPointer<Float>,
+        pWeights: UnsafeBufferPointer<Float>?
+    ) -> KnetLayerProtocol
+}
+
+extension KnetLayerSpecProtocol {
+    var cBiases: Int { cOutputs }
+}
+
+protocol KnetLayerProtocol: class {
     var filter: BNNSFilter { get }
     var pInputs: UnsafeMutableRawPointer { get }
     var pOutputs: UnsafeMutableRawPointer { get }
@@ -30,13 +42,14 @@ protocol KnetLayerProtocol: class, HasOrderProtocol {
 }
 
 extension KnetLayerProtocol {
-    func activate() { BNNSFilterApply(filter, pInputs, pOutputs) }
+    func activate() {
+        print("inputs \(layerInputBuffer!.map { $0 })")
+        BNNSFilterApply(filter, pInputs, pOutputs)
+        print("outputs \(layerOutputBuffer!.map { $0 })")
+    }
 }
 
 class KnetLayer: KnetLayerProtocol {
-
-    let order: Int
-
     let filter: BNNSFilter
     let pInputs: UnsafeMutableRawPointer
     let pOutputs: UnsafeMutableRawPointer
@@ -45,15 +58,10 @@ class KnetLayer: KnetLayerProtocol {
     var layerOutputBuffer: UnsafeBufferPointer<Float>!
 
     init(
-        order: Int, cInputs: Int, cOutputs: Int,
-        activation: BNNSActivation,
-        pBiases: UnsafeBufferPointer<Float>,
         pInputs: UnsafeBufferPointer<Float>,
         pOutputs: UnsafeBufferPointer<Float>,
-        pWeights: UnsafeBufferPointer<Float>?,
         filter: BNNSFilter
     ) {
-        self.order = order
         self.layerInputBuffer = pInputs
         self.layerOutputBuffer = pOutputs
 

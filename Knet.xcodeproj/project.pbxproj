@@ -15,6 +15,7 @@
 		D49ABAD725E729B300F931D7 /* Knet.Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49ABAD625E729B300F931D7 /* Knet.Setup.swift */; };
 		D49ABADE25E732DF00F931D7 /* KnetLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49ABADD25E732DF00F931D7 /* KnetLayer.swift */; };
 		D4EDD48125E75EA200C27F2F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = D404F44725DFC3B50061A641 /* main.swift */; };
+		D4EDD49625E7862000C27F2F /* KnetStructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4EDD49525E7862000C27F2F /* KnetStructure.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,6 +44,7 @@
 		D49ABAD325E7234600F931D7 /* KPoolingLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KPoolingLayer.swift; sourceTree = "<group>"; };
 		D49ABAD625E729B300F931D7 /* Knet.Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knet.Setup.swift; sourceTree = "<group>"; };
 		D49ABADD25E732DF00F931D7 /* KnetLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnetLayer.swift; sourceTree = "<group>"; };
+		D4EDD49525E7862000C27F2F /* KnetStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnetStructure.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,15 +80,16 @@
 		D404F42925DFB1090061A641 /* Knet */ = {
 			isa = PBXGroup;
 			children = (
-				D404F42A25DFB1090061A641 /* mangey.swift */,
 				D404F43B25DFB39E0061A641 /* KFullyConnected.swift */,
-				D404F44225DFC26D0061A641 /* KnetJson.swift */,
-				D404F44725DFC3B50061A641 /* main.swift */,
-				D404F44A25DFC45A0061A641 /* Knet.swift */,
 				D49ABAD625E729B300F931D7 /* Knet.Setup.swift */,
+				D404F44A25DFC45A0061A641 /* Knet.swift */,
 				D404F44D25DFC7EC0061A641 /* KnetCounts.swift */,
+				D404F44225DFC26D0061A641 /* KnetJson.swift */,
 				D49ABADD25E732DF00F931D7 /* KnetLayer.swift */,
+				D4EDD49525E7862000C27F2F /* KnetStructure.swift */,
 				D49ABAD325E7234600F931D7 /* KPoolingLayer.swift */,
+				D404F44725DFC3B50061A641 /* main.swift */,
+				D404F42A25DFB1090061A641 /* mangey.swift */,
 			);
 			path = Knet;
 			sourceTree = "<group>";
@@ -177,6 +180,7 @@
 				D49ABAD425E7234600F931D7 /* KPoolingLayer.swift in Sources */,
 				D49ABAD725E729B300F931D7 /* Knet.Setup.swift in Sources */,
 				D404F44B25DFC45A0061A641 /* Knet.swift in Sources */,
+				D4EDD49625E7862000C27F2F /* KnetStructure.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,7 +308,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = DD983V4X84;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -315,7 +321,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = DD983V4X84;
 				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

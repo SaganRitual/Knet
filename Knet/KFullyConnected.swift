@@ -3,21 +3,48 @@
 import Accelerate
 import Foundation
 
-struct KFCSpec: Codable, KnetLayerSpecProtocol {
-    let activation: Knet.Activation
-    let cInputs: Int
-    let cOutputs: Int
-    var layerLevel: Knet.LayerLevel
-    let name: String
-    let order: Int
-    let inputConnections: [String]?
-    let outputConnection: String?
+class KFCSpec: KnetLayerSpecProtocol, HasWeightsProtocol {
+    var activation: Knet.Activation
+
+    var cInputs = 0
+    var cOutputs = 0
+    var cWeights: Int { cInputs * cOutputs }
+
+    var startInputs = 0
+    var startOutputs: Int { startInputs + cInputs }
+    var startBiases: Int { startOutputs + cOutputs }
+    var startWeights: Int { startBiases + cOutputs}
+
+    var inputSpecs = [KnetLayerSpecProtocol]()
+    var outputSpecs = [KnetLayerSpecProtocol]()
+
+    init(activation: Knet.Activation, cInputs: Int, cOutputs: Int) {
+        self.activation = activation
+        self.cInputs = cInputs
+        self.cOutputs = cOutputs
+    }
+
+    func makeLayer(
+        pBiases: UnsafeBufferPointer<Float>,
+        pInputs: UnsafeBufferPointer<Float>,
+        pOutputs: UnsafeBufferPointer<Float>,
+        pWeights: UnsafeBufferPointer<Float>?
+    ) -> KnetLayerProtocol {
+        KFullyConnected(
+            activation: Knet.bnnsActivation(activation),
+            cInputs: cInputs, cOutputs: cOutputs,
+            pBiases: pBiases, pInputs: pInputs,
+            pOutputs: pOutputs, pWeights: pWeights!
+        )
+    }
 }
 
 class KFullyConnected: KnetLayer {
+    let cInputs: Int
+    let cOutputs: Int
+
     init(
-        order: Int, cInputs: Int, cOutputs: Int,
-        activation: BNNSActivation,
+        activation: BNNSActivation, cInputs: Int, cOutputs: Int,
         pBiases: UnsafeBufferPointer<Float>,
         pInputs: UnsafeBufferPointer<Float>,
         pOutputs: UnsafeBufferPointer<Float>,
@@ -28,15 +55,14 @@ class KFullyConnected: KnetLayer {
             pBiases: pBiases, pWeights: pWeights
         )
 
+        self.cInputs = cInputs
+        self.cOutputs = cOutputs
+
         guard let filter = BNNSFilterCreateLayerFullyConnected(
             &layerParameters, &Knet.filterParameters
         ) else { fatalError("What is it this time!") }
 
-        super.init(
-            order: order, cInputs: cInputs, cOutputs: cOutputs,
-            activation: activation, pBiases: pBiases, pInputs: pInputs,
-            pOutputs: pOutputs, pWeights: pWeights, filter: filter
-        )
+        super.init(pInputs: pInputs, pOutputs: pOutputs, filter: filter)
     }
 }
 
