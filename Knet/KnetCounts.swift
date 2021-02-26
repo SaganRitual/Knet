@@ -25,7 +25,7 @@ class KnetCounts: CustomDebugStringConvertible {
         cExternalOutputs = netStructure.motorLayer.reduce(0) { $0 + $1.cOutputs }
 
         cInternalIOputs = netStructure.hiddenLayers.reduce(0) {
-            $0 + $1.cInputs + $1.cOutputs
+            $0 + ($1.aggregateInputBuffer ? 0 : $1.cInputs) + $1.cOutputs
         }
 
         cBiases = netStructure.upperLayers.reduce(0) { $0 + $1.cBiases }

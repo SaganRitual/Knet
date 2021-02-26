@@ -8,26 +8,26 @@ extension Knet {
         sInputs += layerSpec.cInputs
         sOutputs += layerSpec.cOutputs
 
-        print("c: \(layerSpec.cBiases), \(layerSpec.cInputs), \(layerSpec.cOutputs)")
-        print("s: \(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
+        print("c: \(layerSpec.cInputs), \(layerSpec.cOutputs)")
+        print("s: \(sInputs), \(sOutputs)")
     }
 
     func setupAggregateBuffers(
         _ toAggregate: [KnetLayerSpecProtocol]
     ) {
         let sink = toAggregate.last!
-        let penultimate = toAggregate.dropLast().last!
 
         for layerSpec in toAggregate.dropLast() {
             setupBuffers(layerSpec) { advancePointers(layerSpec) }
         }
 
-        sInputs += penultimate.cOutputs
-        sOutputs += penultimate.cOutputs
-
         setupBuffers(sink) {
             sBiases += sink.cBiases
             sOutputs += sink.cOutputs
+            sInputs += sink.cInputs
+
+            print("c: \(sink.cInputs), \(sink.cOutputs)")
+            print("s: \(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
         }
     }
 
