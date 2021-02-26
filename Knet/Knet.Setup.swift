@@ -3,16 +3,56 @@
 import Foundation
 
 extension Knet {
-    func setupBuffers(_ netStructure: KnetStructure) {
-        resetBuffers()
-        pEverything = .allocate(capacity: cEverything)
+    func advancePointers(_ layerSpec: KnetLayerSpecProtocol) {
+        sBiases += layerSpec.cBiases
+        sInputs += layerSpec.cInputs
+        sOutputs += layerSpec.cOutputs
 
-        for sensorSpec in netStructure.sensorLayer {
-            setupBuffers(sensorSpec)
+        print("c: \(layerSpec.cBiases), \(layerSpec.cInputs), \(layerSpec.cOutputs)")
+        print("s: \(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
+    }
+
+    func setupAggregateBuffers(
+        _ toAggregate: [KnetLayerSpecProtocol]
+    ) {
+        let sink = toAggregate.last!
+        let penultimate = toAggregate.dropLast().last!
+
+        for layerSpec in toAggregate.dropLast() {
+            setupBuffers(layerSpec) { advancePointers(layerSpec) }
+        }
+
+        sInputs += penultimate.cOutputs
+        sOutputs += penultimate.cOutputs
+
+        setupBuffers(sink) {
+            sBiases += sink.cBiases
+            sOutputs += sink.cOutputs
         }
     }
 
-    func setupBuffers(_ layerSpec: KnetLayerSpecProtocol) {
+    func setupBuffers(_ netStructure: KnetStructure) {
+        pEverything = .allocate(capacity: cEverything)
+
+        var toAggregate = [KnetLayerSpecProtocol]()
+
+        for layerSpec in netStructure.allLayers {
+
+            if layerSpec.aggregateOutputBuffer {
+                toAggregate.append(layerSpec)
+            } else if layerSpec.aggregateInputBuffer {
+                toAggregate.append(layerSpec)
+                setupAggregateBuffers(toAggregate)
+            } else {
+                setupBuffers(layerSpec) { advancePointers(layerSpec) }
+            }
+        }
+    }
+
+    func setupBuffers(
+        _ layerSpec: KnetLayerSpecProtocol,
+        _ advancePointers: () -> Void
+    ) {
         let pBiases = UnsafeBufferPointer(
             rebasing: pEverything[sBiases..<(sBiases + layerSpec.cBiases)]
         )
@@ -39,17 +79,17 @@ extension Knet {
 
         layerStack.append(layer)
 
-        sBiases += pBiases.count
-        sInputs += pInputs.count
-        sOutputs += pOutputs.count
-        sWeights += pWeights?.count ?? 0
+        advancePointers()
     }
 
-    func resetBuffers() {
+    func setBufferStarts() {
         sInputs = 0
         sOutputs = cExternalInputs
         sBiases = cIOData
         sWeights = sBiases + cBiases
+
+        print("Set starts")
+        print("\(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
     }
 
     func setupCounts(_ netStructure: KnetStructure) {
@@ -66,7 +106,7 @@ extension Knet {
 
 extension Knet {
     func launchNet() {
-        resetBuffers()
+        setBufferStarts()
 
         self.biasesBuffer = UnsafeMutableBufferPointer(
             rebasing: pEverything[sBiases..<(sBiases + cBiases)]

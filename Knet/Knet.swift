@@ -31,6 +31,7 @@ class Knet {
 
     init(_ netStructure: KnetStructure) {
         setupCounts(netStructure)
+        setBufferStarts()
         setupBuffers(netStructure)
         launchNet()
     }

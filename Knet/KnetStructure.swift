@@ -15,7 +15,7 @@ enum Config {
     static let kernelWidth = 3
 }
 
-struct KnetStructure {
+class KnetStructure {
     var startBiases = 0
     var startInputs = 0
     var startOutputs = 0
@@ -24,6 +24,9 @@ struct KnetStructure {
     var hiddenLayers = [KnetLayerSpecProtocol]()
     var motorLayer = [KnetLayerSpecProtocol]()
     var sensorLayer = [KnetLayerSpecProtocol]()
+
+    var allLayers: [KnetLayerSpecProtocol] { upperLayers + motorLayer }
+    var upperLayers: [KnetLayerSpecProtocol] { sensorLayer + hiddenLayers }
 
     init() {
         let blackPoolSpec = KPLSpec(
@@ -42,12 +45,14 @@ struct KnetStructure {
 
         let blackPoolFc = KFCSpec(
             activation: Config.activation,
-            cInputs: blackPoolSpec.imageArea, cOutputs: blackPoolSpec.imageArea
+            cInputs: blackPoolSpec.imageArea, cOutputs: blackPoolSpec.imageArea,
+            aggregateOutputBuffer: true
         )
 
         let redPoolFc = KFCSpec(
             activation: Config.activation,
-            cInputs: redPoolSpec.imageArea, cOutputs: redPoolSpec.imageArea
+            cInputs: redPoolSpec.imageArea, cOutputs: redPoolSpec.imageArea,
+            aggregateOutputBuffer: true
         )
 
         hiddenLayers.append(contentsOf: [blackPoolFc, redPoolFc])
@@ -58,7 +63,8 @@ struct KnetStructure {
         let aggregator = KFCSpec(
             activation: Config.activation,
             cInputs: blackPoolSpec.imageArea + redPoolSpec.imageArea,
-            cOutputs: Config.cOutputsAggregator
+            cOutputs: Config.cOutputsAggregator,
+            aggregateInputBuffer: true
         )
 
         connect(blackPoolFc, to: aggregator)

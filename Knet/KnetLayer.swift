@@ -17,6 +17,9 @@ protocol KnetLayerSpecProtocol: class {
     var cInputs: Int { get }
     var cOutputs: Int { get }
 
+    var aggregateOutputBuffer: Bool { get }
+    var aggregateInputBuffer: Bool { get }
+
     var inputSpecs: [KnetLayerSpecProtocol] { get set }
     var outputSpecs: [KnetLayerSpecProtocol] { get set }
 
@@ -43,7 +46,7 @@ protocol KnetLayerProtocol: class {
 
 extension KnetLayerProtocol {
     func activate() {
-        print("inputs \(layerInputBuffer!.map { $0 })")
+        print("inputs  \(layerInputBuffer!.map { $0 })")
         BNNSFilterApply(filter, pInputs, pOutputs)
         print("outputs \(layerOutputBuffer!.map { $0 })")
     }

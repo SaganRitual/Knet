@@ -28,9 +28,9 @@ class KnetCounts: CustomDebugStringConvertible {
             $0 + $1.cInputs + $1.cOutputs
         }
 
-        cBiases = netStructure.sensorLayer.reduce(0) { $0 + $1.cBiases }
+        cBiases = netStructure.upperLayers.reduce(0) { $0 + $1.cBiases }
 
-        cWeights = netStructure.sensorLayer
+        cWeights = netStructure.allLayers
             .compactMap { $0 as? HasWeightsProtocol }
             .reduce(0) { $0 + $1.cWeights }
 

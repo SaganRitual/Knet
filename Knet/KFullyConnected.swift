@@ -10,18 +10,26 @@ class KFCSpec: KnetLayerSpecProtocol, HasWeightsProtocol {
     var cOutputs = 0
     var cWeights: Int { cInputs * cOutputs }
 
+    var aggregateOutputBuffer = false
+    var aggregateInputBuffer = false
+
     var startInputs = 0
     var startOutputs: Int { startInputs + cInputs }
     var startBiases: Int { startOutputs + cOutputs }
-    var startWeights: Int { startBiases + cOutputs}
+    var startWeights: Int { startBiases + cOutputs }
 
     var inputSpecs = [KnetLayerSpecProtocol]()
     var outputSpecs = [KnetLayerSpecProtocol]()
 
-    init(activation: Knet.Activation, cInputs: Int, cOutputs: Int) {
+    init(
+        activation: Knet.Activation, cInputs: Int, cOutputs: Int,
+        aggregateInputBuffer: Bool = false, aggregateOutputBuffer: Bool = false
+    ) {
         self.activation = activation
         self.cInputs = cInputs
         self.cOutputs = cOutputs
+        self.aggregateOutputBuffer = aggregateOutputBuffer
+        self.aggregateInputBuffer = aggregateInputBuffer
     }
 
     func makeLayer(

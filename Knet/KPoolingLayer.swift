@@ -12,6 +12,9 @@ class KPLSpec: KnetLayerSpecProtocol {
     let kernelWidth: Int
     let kernelHeight: Int
 
+    var aggregateOutputBuffer = false
+    var aggregateInputBuffer = false
+
     var imageArea: Int { imageWidth * imageHeight }
     var cInputs: Int { imageArea }
     var cOutputs: Int { imageArea }
@@ -27,7 +30,8 @@ class KPLSpec: KnetLayerSpecProtocol {
         activation: Knet.Activation,
         poolingFunction: Knet.PoolingFunction,
         imageWidth: Int, imageHeight: Int,
-        kernelWidth: Int, kernelHeight: Int
+        kernelWidth: Int, kernelHeight: Int,
+        aggregateInputBuffer: Bool = false, aggregateOutputBuffer: Bool = false
     ) {
         self.activation = activation
         self.poolingFunction = poolingFunction
@@ -35,6 +39,8 @@ class KPLSpec: KnetLayerSpecProtocol {
         self.imageHeight = imageHeight
         self.kernelWidth = kernelWidth
         self.kernelHeight = kernelHeight
+        self.aggregateOutputBuffer = aggregateOutputBuffer
+        self.aggregateInputBuffer = aggregateInputBuffer
     }
 
     func makeLayer(
