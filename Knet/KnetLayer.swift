@@ -45,7 +45,11 @@ protocol KnetLayerProtocol: class {
 }
 
 extension KnetLayerProtocol {
-    func activate() { BNNSFilterApply(filter, pInputs, pOutputs) }
+    func activate() {
+//        print("inputs  \(layerInputBuffer!.map { $0 })")
+        BNNSFilterApply(filter, pInputs, pOutputs)
+//        print("outputs \(layerOutputBuffer!.map { $0 })")
+    }
 }
 
 class KnetLayer: KnetLayerProtocol {

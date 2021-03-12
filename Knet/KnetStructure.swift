@@ -3,18 +3,16 @@
 import Foundation
 
 enum Config {
-    static let mutationProbability = 0.85
-    static let randomerCSamplesToGenerate = 50_000
     static let activation = Knet.Activation.identity
     static let poolingFunction = Knet.PoolingFunction.average
-    static let cInputsFunnel = 2 * imageWidth * imageHeight
-    static let cOutputsFunnel = imageWidth
-    static let cOutputsPlayerFc = imageWidth * imageHeight
-    static let cOutputsAggregator = imageWidth
-    static let imageHeight = 7
-    static let imageWidth = 7
-    static let kernelHeight = 4
-    static let kernelWidth = 4
+    static let cInputsFunnel = 3
+    static let cOutputsFunnel = 3
+    static let cOutputsPlayerFc = 3
+    static let cOutputsAggregator = 3
+    static let imageHeight = 3
+    static let imageWidth = 3
+    static let kernelHeight = 3
+    static let kernelWidth = 3
 }
 
 class KnetStructure {
@@ -76,7 +74,7 @@ class KnetStructure {
 
         let funnel = KFCSpec(
             activation: Config.activation,
-            cInputs: Config.cOutputsFunnel,
+            cInputs: Config.cInputsFunnel,
             cOutputs: Config.cOutputsFunnel
         )
 
