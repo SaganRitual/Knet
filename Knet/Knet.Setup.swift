@@ -8,8 +8,8 @@ extension Knet {
         sInputs += layerSpec.cInputs
         sOutputs += layerSpec.cOutputs
 
-        print("c: \(layerSpec.cInputs), \(layerSpec.cOutputs)")
-        print("s: \(sInputs), \(sOutputs)")
+//        print("c: \(layerSpec.cInputs), \(layerSpec.cOutputs)")
+//        print("s: \(sInputs), \(sOutputs)")
     }
 
     func setupAggregateBuffers(
@@ -26,8 +26,8 @@ extension Knet {
             sOutputs += sink.cOutputs
             sInputs += sink.cInputs
 
-            print("c: \(sink.cInputs), \(sink.cOutputs)")
-            print("s: \(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
+//            print("c: \(sink.cInputs), \(sink.cOutputs)")
+//            print("s: \(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
         }
     }
 
@@ -88,8 +88,8 @@ extension Knet {
         sBiases = cIOData
         sWeights = sBiases + cBiases
 
-        print("Set starts")
-        print("\(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
+//        print("Set starts")
+//        print("\(sBiases), \(sInputs), \(sOutputs), \(sWeights)")
     }
 
     func setupCounts(_ netStructure: KnetStructure) {
